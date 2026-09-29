@@ -204,6 +204,13 @@ public:
     void TouchReleased();
 
     /**
+     * Touch in 3DS bottom-screen space, independent of the current window layout.
+     * Used by input sources that are not the window itself (e.g. a remote screen).
+     * @param x 0..1 across the 320px bottom screen, @param y 0..1 down its 240px
+     */
+    void TouchPressedNormalized(float x, float y);
+
+    /**
      * Signal that a touch movement event has occurred (e.g. mouse was moved over the emu window)
      * @param framebuffer_x Framebuffer x-coordinate
      * @param framebuffer_y Framebuffer y-coordinate

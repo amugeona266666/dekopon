@@ -8,6 +8,7 @@
 #include <utility>
 #include <switch.h>
 
+#include "citra_switch/remote_screen.h"
 #include "citra_switch/amiibo_session.h"
 #include "citra_switch/applets/swkbd.h"
 #include "citra_switch/updater.h"
@@ -331,6 +332,9 @@ int main(int argc, char* argv[]) {
     const bool have_socket = R_SUCCEEDED(socketInitializeDefault());
     if (have_socket) {
         nxlinkStdio();
+        if (!RemoteScreen::Start(8080, "sdmc:/switch/dekopon/remote")) {
+            std::printf("Warning: remote screen server failed to start.\n");
+        }
     }
     // Mount the embedded romfs for deko3D shaders
     const bool have_romfs = R_SUCCEEDED(romfsInit());
@@ -379,6 +383,7 @@ int main(int argc, char* argv[]) {
     }
 
     SwitchFrontend::ShutdownMenu();
+    RemoteScreen::Stop();
     SwitchFrontend::ShutdownInput();
     StopSixAxis();
     SwitchFrontend::Shutdown();

@@ -13,6 +13,7 @@
 
 #include "citra_switch/emu_window.h"
 #include "citra_switch/input.h"
+#include "citra_switch/remote_screen.h"
 #include "common/param_package.h"
 #include "common/settings.h"
 #include "core/frontend/emu_window.h"
@@ -55,6 +56,7 @@ std::array<std::atomic<float>, Settings::NativeAnalog::NumAnalogs> s_stick_y{};
 std::array<std::atomic<float>, 3> s_accel{};
 std::array<std::atomic<float>, 3> s_gyro{};
 bool s_touch_active{};
+bool s_remote_touch_active{};
 
 // The position is stored as a fraction of the bottom screen so it stays valid across layout
 // changes and can never leave the screen (it is clamped to [0, 1]).
@@ -525,6 +527,19 @@ void UpdateInput(const InputState& state) {
     } else if (s_touch_active) {
         window->TouchReleased();
         s_touch_active = false;
+    }
+
+    // Phone bottom screen. Only used while nothing local is touching.
+    RemoteScreen::Touch remote{};
+    const bool remote_pressed = RemoteScreen::GetTouch(remote) && remote.pressed;
+    if (!s_touch_active && remote_pressed) {
+        window->TouchPressedNormalized(remote.x, remote.y);
+        s_remote_touch_active = true;
+    } else if (s_remote_touch_active && !remote_pressed) {
+        if (!s_touch_active) {
+            window->TouchReleased();
+        }
+        s_remote_touch_active = false;
     }
 }
 

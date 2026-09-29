@@ -33,6 +33,7 @@
 #include "video_core/overlay.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
+#include "citra_switch/remote_screen.h"
 
 namespace SwitchFrontend {
 
@@ -304,6 +305,7 @@ void EmuThread(std::string path) {
             continue;
         }
 
+        RemoteScreen::MaybeRequestCapture(system.GPU().Renderer());
         const Core::System::ResultStatus result = system.RunLoop();
         ReportSaveStateEvent(system);
         if (result == Core::System::ResultStatus::Success) {

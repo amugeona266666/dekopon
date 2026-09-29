@@ -1,0 +1,46 @@
+# Builds Dekopon with the remote-screen patch on GitHub's servers.
+# No devkitPro or Docker needed on your Mac: push, wait, download dekopon.nro.
+name: Build Dekopon (remote screen)
+
+on:
+  push:
+    branches: [remote-screen]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build NXVK toolchain image
+        run: docker build -t nxvk externals/nxvk/switch/docker
+
+      - name: Build NXVK Vulkan driver (in place)
+        run: docker run --rm -v "$PWD:/work" -w /work/externals/nxvk nxvk make CONTAINER= driver
+
+      - name: Build Dekopon
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work nxvk bash -lc '
+            set -e
+            dkp-pacman -Sy --noconfirm --needed switch-dev switch-freetype switch-bzip2 \
+              switch-libpng switch-zlib switch-curl switch-libjpeg-turbo
+            git config --global --add safe.directory "*"
+            cmake -S . -B build/switch \
+              -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake \
+              -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+            cmake --build build/switch --target citra_switch_nro -j$(nproc)
+          '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dekopon-remote
+          path: build/switch/src/citra_switch/dekopon.nro
