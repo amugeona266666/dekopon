@@ -33,7 +33,7 @@ jobs:
         run: docker build -t nxvk externals/nxvk/switch/docker
 
       - name: Build NXVK Vulkan driver (in place)
-        run: docker run --rm -v "$PWD:/work" -w /work/externals/nxvk nxvk make CONTAINER= driver
+        run: docker run --rm -v "$PWD/externals/nxvk:/work" -w /work nxvk make CONTAINER= driver
 
       - name: Build Dekopon
         run: |
