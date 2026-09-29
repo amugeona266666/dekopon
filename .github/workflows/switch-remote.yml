@@ -21,6 +21,14 @@ jobs:
         with:
           submodules: recursive
 
+      # Dekopon lists NXVK in .gitmodules but does not pin it in the tree,
+      # so checkout never fetches it. Clone the "switch" branch explicitly.
+      - name: Fetch NXVK
+        run: |
+          rm -rf externals/nxvk
+          git clone --depth 1 --branch switch https://github.com/PalindromicBreadLoaf/nxvk.git externals/nxvk
+          ls externals/nxvk/switch/docker
+
       - name: Build NXVK toolchain image
         run: docker build -t nxvk externals/nxvk/switch/docker
 
